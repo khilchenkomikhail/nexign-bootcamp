@@ -89,9 +89,9 @@ PS D:\java_projects\test-app-web> minikube start --embed-certs
 🏄  Готово! kubectl настроен для использования кластера "minikube" и "default" пространства имён по умолчанию
 ```
 
-Были написаны два манифеста, Pod-manifest по аналогии с примером из лекции, файл pod.yaml и Deployment-manifest с двумя репликами приложения.
+Были написаны два манифеста, Pod-manifest по аналогии с примером из лекции(pod.yaml) и Deployment-manifest с двумя репликами приложения(deployment.yaml).
 
-Pod-manifest:
+### Pod-manifest:
 
 ```shell
 PS D:\java_projects\test-app-web> kubectl apply -f pod.yaml -n default
@@ -99,6 +99,61 @@ pod/web created
 PS D:\java_projects\test-app-web> kubectl get pods
 NAME                              READY   STATUS    RESTARTS   AGE
 web                               1/1     Running   0          10s
+```
+
+Результат команды “kubectl describe pod web”:
+
+```shell
+PS D:\java_projects\test-app-web> kubectl describe pod web -n default
+Name:         web
+Namespace:    default
+Priority:     0
+Node:         minikube/192.168.49.2
+Start Time:   Fri, 10 Jun 2022 21:55:51 +0300
+Labels:       env=test
+Annotations:  <none>
+Status:       Running
+IP:           172.17.0.5
+IPs:
+  IP:  172.17.0.5
+Containers:
+  webapp:
+    Container ID:   docker://b0dd9e84248cca71cbac377de6e8c1d492e17d099baa0581ff4f66f760d1d4b1
+    Image:          mikhailkh/webapp:1.0.0
+    Image ID:       docker-pullable://mikhailkh/webapp@sha256:5c26cec4d450d5411dcfe7beae1ed438bda6da620b6a40220b147d265530e0a6
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Fri, 10 Jun 2022 21:55:52 +0300
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-4nvrx (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  kube-api-access-4nvrx:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  50s   default-scheduler  Successfully assigned default/web to minikube
+  Normal  Pulled     50s   kubelet            Container image "mikhailkh/webapp:1.0.0" already present on machine
+  Normal  Created    50s   kubelet            Created container webapp
+  Normal  Started    50s   kubelet            Started container webapp
 ```
 
 Обеспечение доступа к приложению снаружи
@@ -111,13 +166,52 @@ Handling connection for 8080
 Handling connection for 8080
 ```
 
-Deployment-manifest:
+
+
+### Deployment-manifest:
 ```shell
 PS D:\java_projects\test-app-web> kubectl apply -f deployment.yaml -n default
 deployment.apps/web-deployment created
 PS D:\java_projects\test-app-web> kubectl get deployments
 NAME             READY   UP-TO-DATE   AVAILABLE   AGE
 web-deployment   2/2     2            2           3s
+```
+
+Результат команды “kubectl describe deployment web-deployment”:
+
+```shell
+PS D:\java_projects\test-app-web> kubectl describe deployment web-deployment -n default
+Name:                   web-deployment
+Namespace:              default
+CreationTimestamp:      Fri, 10 Jun 2022 21:55:00 +0300
+Labels:                 app=webapp
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=webapp
+Replicas:               2 desired | 2 updated | 2 total | 2 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=webapp
+  Containers:
+   webapp:
+    Image:        mikhailkh/webapp:1.0.0
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   web-deployment-7b9b45bf8f (2/2 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  3m50s  deployment-controller  Scaled up replica set web-deployment-7b9b45bf8f to 2
 ```
 
 Обеспечение доступа к приложению снаружи
